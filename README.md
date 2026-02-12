@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 🚀 Shopora — MERN E-Commerce Platform
 🛒 Overview
 
@@ -78,3 +79,6 @@ Protected routes & role-based access
 Environment variables for secrets
 
 CORS configured for production
+=======
+# Shopora
+>>>>>>> dfb45aa337fde4cf7abe3200993e85b477aa791b
