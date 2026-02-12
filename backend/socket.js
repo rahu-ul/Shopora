@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const User = require("./models/userModel");
 const Order = require("./models/orderModel");
 
-
 let ioInstance = null;
 
 function parseCookieHeader(cookieHeader = "") {
@@ -18,11 +17,12 @@ function parseCookieHeader(cookieHeader = "") {
 function initializeSocket(server) {
   ioInstance = new Server(server, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: process.env.FRONTEND_URL,
       credentials: true,
     },
   });
 
+  // 🔐 Socket authentication middleware
   ioInstance.use(async (socket, next) => {
     try {
       const cookies = parseCookieHeader(socket.handshake.headers.cookie || "");
@@ -41,32 +41,46 @@ function initializeSocket(server) {
       }
 
       socket.user = user;
-      return next();
+      next();
     } catch (error) {
-      return next(new Error("Socket authentication failed"));
+      next(new Error("Socket authentication failed"));
     }
   });
 
+  // 🔌 Connection handler
   ioInstance.on("connection", (socket) => {
+    console.log("🔌 Socket connected:", socket.user._id.toString());
+
+    // Join personal room
     socket.join(`user:${socket.user._id.toString()}`);
+
+    // Admin room
     if (socket.user.role === "admin") {
       socket.join("role:admin");
     }
 
+    // Join order room
     socket.on("join_order", async (orderId) => {
       try {
         if (!orderId) return;
+
         const order = await Order.findById(orderId).select("user");
         if (!order) return;
 
-        const isOwner = order.user.toString() === socket.user._id.toString();
+        const isOwner =
+          order.user.toString() === socket.user._id.toString();
         const isAdmin = socket.user.role === "admin";
+
         if (!isOwner && !isAdmin) return;
 
         socket.join(`order:${orderId}`);
       } catch (error) {
-        // Keep socket alive; join failure should not terminate connection.
+        console.log("Join order error:", error.message);
       }
+    });
+
+    socket.on("disconnect", () => {
+      console.log("❌ Socket disconnected:", socket.user._id.toString());
     });
   });
 
@@ -74,6 +88,9 @@ function initializeSocket(server) {
 }
 
 function getIO() {
+  if (!ioInstance) {
+    throw new Error("Socket.io not initialized!");
+  }
   return ioInstance;
 }
 

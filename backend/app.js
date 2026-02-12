@@ -15,9 +15,10 @@ dotenv.config({ path: path.join(__dirname, 'config', '.env') });
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
 }));
+
 app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload({
     useTempFiles: true, // <-- Yeh zaroori hai Cloudinary ke liye
