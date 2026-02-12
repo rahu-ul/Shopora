@@ -372,7 +372,7 @@ const ContactPage = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes blob {
           0%, 100% {
             transform: translate(0, 0) scale(1);

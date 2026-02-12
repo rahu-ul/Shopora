@@ -5,6 +5,22 @@ const Order = require("./models/orderModel");
 
 let ioInstance = null;
 
+const normalizeOrigin = (value = "") => value.trim().replace(/\/+$/, "");
+
+const allowedOrigins = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((origin) => normalizeOrigin(origin))
+  .filter(Boolean);
+
+const socketCorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(normalizeOrigin(origin))) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+};
+
 function parseCookieHeader(cookieHeader = "") {
   return cookieHeader.split(";").reduce((acc, part) => {
     const [rawKey, ...rawVal] = part.trim().split("=");
@@ -16,10 +32,7 @@ function parseCookieHeader(cookieHeader = "") {
 
 function initializeSocket(server) {
   ioInstance = new Server(server, {
-    cors: {
-      origin: process.env.FRONTEND_URL,
-      credentials: true,
-    },
+    cors: socketCorsOptions,
   });
 
   // 🔐 Socket authentication middleware
