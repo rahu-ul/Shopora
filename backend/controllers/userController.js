@@ -91,9 +91,12 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
 
 // logout user
 exports.logoutUser = catchAsyncErrors(async (req, res, next) => {
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('token', null, {
         expires: new Date(Date.now()), // <-- Token ko expire karne ka sahi tareeka
         httpOnly: true,
+        sameSite: isProduction ? 'none' : 'lax',
+        secure: isProduction,
     });
 
     res.status(200).json({
