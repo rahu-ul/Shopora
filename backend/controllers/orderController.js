@@ -87,10 +87,6 @@ exports.getAdminOrder = catchAsyncErrors(async (req, res, next) => {
 exports.myOrders = catchAsyncErrors(async (req, res, next) => {
   const orders = await Order.find({ user: req.user._id });
 
-  if (!orders || orders.length === 0) {
-    return next(new Errorhandler("No orders found for this user", 404));
-  }
-
   res.status(200).json({
     success: true,
     orders
@@ -180,10 +176,6 @@ exports.getAllOrders = catchAsyncErrors(async (req, res, next) => {
   orders.forEach(order => {
     totalAmount += order.totalPrice;
   });
-
-  if (!orders || orders.length === 0) {
-    return next(new Errorhandler("No orders found", 404));
-  }
 
   res.status(200).json({
     success: true,

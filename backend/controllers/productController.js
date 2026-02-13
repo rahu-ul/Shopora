@@ -17,16 +17,17 @@ exports.createProduct = catchAsyncErrors(async (req, res, next) => {
 
   // Normalize images input (supports base64 strings in req.body.images or file uploads in req.files.images)
   let images = [];
-  if (req.body && req.body.images) {
-    images = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
-  } else if (req.files && req.files.images) {
+  if (req.files && req.files.images) {
     images = Array.isArray(req.files.images) ? req.files.images : [req.files.images];
+  } else if (req.body && req.body.images) {
+    images = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
   }
 
   const imagesLinks = [];
   for (const image of images) {
     if (!image) continue;
     const uploadSource = image.tempFilePath ? image.tempFilePath : image;
+    if (!uploadSource) continue;
     const uploaded = await cloudinary.v2.uploader.upload(uploadSource, {
       folder: 'products',
     });

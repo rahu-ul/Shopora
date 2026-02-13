@@ -6,6 +6,9 @@ const sendEmail = require('../Utils/sendEmail'); // Utility to send emails
 const crypto = require('crypto'); // Importing crypto for generating reset password tokens
 const cloudinary = require('cloudinary'); // Importing Cloudinary for image uploads
 
+const normalizeEmail = (email = '') => email.trim().toLowerCase();
+const escapeRegex = (text = '') => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // Register a new user
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -41,7 +44,7 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
 
   const user = await User.create({
     name,
-    email,
+    email: normalizeEmail(email),
     password,
     avatar: avatarData,
   });
@@ -59,8 +62,11 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Please enter email and password', 400));
   }
 
-  // Find user by email and check password
-  const user = await User.findOne({ email }).select("+password");
+  const normalizedEmail = normalizeEmail(email);
+  const emailRegex = new RegExp(`^${escapeRegex(normalizedEmail)}$`, 'i');
+
+  // Find user by email (case-insensitive) and check password
+  const user = await User.findOne({ email: emailRegex }).select("+password");
 
   if (!user) {
     return next(new ErrorHandler("Invalid email or password", 401));

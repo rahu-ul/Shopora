@@ -64,9 +64,6 @@ const CreateProduct = () => {
         // Make the API call
         try {
             const config = {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                },
                 withCredentials: true,
             };
            const { data } = await axios.post(
@@ -95,14 +92,13 @@ const CreateProduct = () => {
     };
 
     const processFiles = (files) => {
-        setImages([]);
+        setImages(files);
         setImagesPreview([]);
         files.forEach((file) => {
             const reader = new FileReader();
             reader.onload = () => {
                 if (reader.readyState === 2) {
                     setImagesPreview((oldImages) => [...oldImages, reader.result]);
-                    setImages((oldImages) => [...oldImages, reader.result]);
                 }
             };
             reader.readAsDataURL(file);
