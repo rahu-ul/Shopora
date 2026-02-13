@@ -12,31 +12,34 @@ const path = require('path');
 dotenv.config({ path: path.join(__dirname, 'config', '.env') });
 
 const normalizeOrigin = (value = '') => value.trim().replace(/\/+$/, '');
-const allowedOrigins = (process.env.FRONTEND_URL || '')
-    .split(',')
-    .map((origin) => normalizeOrigin(origin))
-    .filter(Boolean);
+
+const allowedOrigins = [
+    'https://shopora-zeta.vercel.app',
+    'http://localhost:5173' // for local dev (optional)
+];
 
 const corsOptions = {
-    origin: (origin, callback) => {
+    origin: function (origin, callback) {
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(normalizeOrigin(origin))) return callback(null, true);
-        return callback(new Error('Not allowed by CORS'));
+        if (allowedOrigins.includes(normalizeOrigin(origin))) {
+            return callback(null, true);
+        }
+        return callback(null, false);
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 };
 
-// Middleware
-app.use(express.json());
-app.use(cookieParser());
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+app.use(cookieParser());
 
 app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload({
-    useTempFiles: true, // <-- Yeh zaroori hai Cloudinary ke liye
+    useTempFiles: true,
 }));
 
-// Importing routes
 const product = require('./routes/productRoute');
 const user = require('./routes/userRoute');
 const order = require('./routes/orderRoute');
